@@ -12,6 +12,6 @@ Structure de la fiche :
 3. Missions principales
 4. Profil recherché
 5. Compétences techniques / soft skills attendues
-6. Conditions de travail (lieu, télétravail, rémunération estimée)
+6. Conditions de travail (lieu, télétravail, rémunération estimée).
 
 Sois professionnel, synthétique et inclusif. La fiche doit pouvoir être publiée directement sur notre plateforme après validation.
