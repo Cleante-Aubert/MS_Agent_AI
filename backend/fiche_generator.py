@@ -24,18 +24,13 @@ def load_prompt_from_env_hiro(file_path):
 template = load_prompt_from_env_hiro("../config/prompts/prompt_env_hiro.txt")
 
 
-# TODO : Créer un objet de prompt LangChain pour la génération de la fiche
-
 prompt = PromptTemplate(input_variables=["titre", "secteur", "contrat", "niveau", "competences"], template=template)
 llm_chain = LLMChain(llm=client, prompt=prompt)
 
-# TODO : Fonction pour générer la fiche à partir du prompt
 def generate_fiche(titre,secteur,contrat, niveau, competences):
    result = llm_chain.run(titre=titre, secteur=secteur, contrat=contrat, niveau=niveau, competences=competences)
    return result
 
-
-# TEST : Exemple d'utilisation de la fonction generate_fiche
 
 if __name__ == "__main__":
 
