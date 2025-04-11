@@ -9,16 +9,20 @@ Dans le cadre du Hackaton organisé par Microsoft dans le thème de l'intelligen
 
 ### 2. Backend
 - **Azure OpenAI** via SDK en Python
-- **LangChain** pour la logique :
+- **LangChain** pour la logique RAG :
     - Génération contrôlée (fiche de poste)
-    - Similarité sémntique fiche ⇔ CV (RAG)
+    - Similarité sémantique fiche ⇔ CV (RAG)
 
-- Stockage vectoriel pour les CV (FAISS ou Azure Cognitive Search)
+- Stockage vectoriel pour les CV (FAISS ou Azure Cosmos DB)
 - Déploiement : ???
-- Hébergement : **Azure**
+- Hébergement : **Azure App Service**
 
 ### 3. RAG - Base de connaissance
 - Données internes RH (modèles de fiches, critères de sélection, process, ...)
 - Intégrer avec LangChain + retriever
 
 ## Architecture de notre application
+-> à implenter
+
+## Lancement de l'application 
+-> 
