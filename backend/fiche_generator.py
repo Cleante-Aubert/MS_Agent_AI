@@ -47,3 +47,7 @@ if __name__ == "__main__":
     print("Fiche de Poste générée :\n")
     print(fiche_poste)
 
+_all_ = ["generate_fiche"]
+
+
+

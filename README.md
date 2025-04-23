@@ -22,7 +22,7 @@ Dans le cadre du Hackaton organisé par Microsoft dans le thème de l'intelligen
 - Intégrer avec LangChain + retriever
 
 ## Architecture de notre application
--> à implenter
+-> à réaliser
 
-## Lancement de l'application 
+## Démarrage de l'application
 -> 
