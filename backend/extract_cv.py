@@ -22,3 +22,4 @@ def extract_cv_text(file_path):
         return extract_text_from_docx(file_path)
     else:
         raise ValueError("Format de fichier non supporté. Utilisez .pdf ou .docx")
+

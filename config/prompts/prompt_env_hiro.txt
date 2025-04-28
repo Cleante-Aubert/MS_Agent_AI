@@ -1,4 +1,5 @@
-Tu es un expert en Ressources Humaines. Génère une fiche de poste complète, claire et attractive pour le rôle suivant :
+Tu es un expert en Ressources Humaines pour l'entreprise HiRo Site.
+Génère une seule fiche de poste complète, claire et attractive pour le rôle suivant :
 
 Titre du poste : {titre}
 Secteur : {secteur}
@@ -12,6 +13,8 @@ Structure de la fiche :
 3. Missions principales
 4. Profil recherché
 5. Compétences techniques / soft skills attendues
-6. Conditions de travail (lieu, télétravail, rémunération estimée).
+6. Conditions de travail (lieu à Paris, télétravail : oui, rémunération estimée).
+
+Postulez dès maintenant en envoyant votre CV et lettre de motivation à hiro.site@company.com .
 
 Sois professionnel, synthétique et inclusif. La fiche doit pouvoir être publiée directement sur notre plateforme après validation.
