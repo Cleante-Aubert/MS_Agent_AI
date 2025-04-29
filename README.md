@@ -20,9 +20,4 @@ Dans le cadre du Hackaton organisé par Microsoft dans le thème de l'intelligen
 ### 3. RAG - Base de connaissance
 - Données internes RH (modèles de fiches, critères de sélection, process, ...)
 - Intégrer avec LangChain + retriever
-
-## Architecture de notre application
--> à réaliser
-
-## Démarrage de l'application
--> 
+- Embeddings Azure
