@@ -4,24 +4,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def generate_embedding_cognitive(text: str) -> list:
+def generate_embedding_cognitive(text):
     url = os.environ["AZURE_EMBEDDING_ENDPOINT"]
     api_key = os.environ["AZURE_EMBEDDING_API_KEY"]
 
     headers = {
         "Content-Type": "application/json",
-        "api-key": api_key,
+        "Authorization": api_key,
     }
 
-    payload = {
-        "imput":text,
+    data = {
+        "model": "text-embedding-ada-002",
+        "input": text,
     }
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=data)
     
     if response.status_code == 200:
-        embedding = response.json()
-        return embedding["data"][0]["embedding"]
+        embedding_json = response.json()
+        return embedding_json["data"][0]["embedding"]
     else:
-        raise Exception(f"Error generating embedding: {response.status_code} - {response.text}")
-
+        print(f"Error: {response.status_code}, {response.text}")
+        return None

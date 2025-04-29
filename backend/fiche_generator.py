@@ -6,14 +6,6 @@ from langchain.chains import LLMChain
 from backend.cosmos_db import CosmosDBManager
 from dotenv import load_dotenv
 import uuid
-import base64
-import io
-import reportlab.lib.pagesizes as pagesizes
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from markdown2 import markdown
 
 
 load_dotenv()
@@ -40,57 +32,6 @@ prompt = PromptTemplate(input_variables=["titre", "secteur", "contrat", "niveau"
 llm_chain = LLMChain(llm=client, prompt=prompt)
 
 
-def clean_duplicate_lines(text):
-    seen = set()
-    cleaned_lines = []
-    for line in text.split('\n'):
-        if line not in seen:
-            cleaned_lines.append(line)
-            seen.add(line)
-    return "\n".join(cleaned_lines)
-
-def generate_pdf_from_text(text):
-   buffer = io.BytesIO()
-
-   doc = SimpleDocTemplate(buffer, pagesize=pagesizes.A4)
-   elements = []
-
-   style = getSampleStyleSheet()
-
-   title_style = ParagraphStyle(
-       name='TitleStyle',
-       fontSize=18,
-       spaceAfter=12,
-       textColor=colors.HexColor("#2E86C1"),
-       alignment=1,
-       fontName="Helvetica-Bold"
-   )
-   body_style = ParagraphStyle(
-       name='BodyStyle',
-       fontSize=12, 
-       leading=14,
-       fontName="Helvetica",
-       textColor=colors.black,
-       spaceAfter=12,
-
-   )
-
-   html_paragraph = markdown(text)
-   elements.append(Paragraph(html_paragraph, body_style))
-
-   clean_text = clean_duplicate_lines(text)
-
-   for para in clean_text.split("\n"):
-    para = para.strip()
-    if para:
-        elements.append(Paragraph(para, body_style))
-
-   doc.build(elements)
-
-   buffer.seek(0)
-   pdf_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-   return pdf_base64
-
 def generate_fiche(titre,secteur,contrat, niveau, competences, source=""):
    result = llm_chain.run(
       titre=titre,
@@ -98,9 +39,9 @@ def generate_fiche(titre,secteur,contrat, niveau, competences, source=""):
       contrat=contrat,
       niveau=niveau, 
       competences=competences
-  )
-   result = result.strip()
-   result = clean_duplicate_lines(result)
+  ).strip()
+   
+   result = CosmosDBManager.clean_duplicate_lines(result)
    
    print("Résultat de l'IA : ", result)
    
@@ -118,13 +59,13 @@ def generate_fiche(titre,secteur,contrat, niveau, competences, source=""):
             "upload_date": "2023-10-01"
         }
      }
-   pdf_base64 = generate_pdf_from_text(result)
+   db = CosmosDBManager()
+   pdf_base64 = db.generate_pdf_from_text(result)
    fiche["fichierPDF"] = pdf_base64
 
    if not isinstance(result, str):
       raise ValueError("Le texte de la fiche de poste doit être une chaîne de caractères.")
 
-   db = CosmosDBManager()
    try:
       db.add_job_description(job_info=fiche, job_description=result)
       print(f"Fiche de poste ajoutée avec succès, ID : {fiche_id}")
@@ -137,11 +78,11 @@ def generate_fiche(titre,secteur,contrat, niveau, competences, source=""):
 _all_ = ["generate_fiche"]
 
 if __name__ == "__main__":
-    titre = "Developpeur Frontend Web"
+    titre = "Advisor Data Scientist"
     secteur = "Technologie"
     contrat = "CDI"
-    niveau = "5 ans d'expérience"
-    competences = "JavaScript, React, CSS, HTML, API REST"
+    niveau = " 10 ans d'expérience"
+    competences = "Python, SQL, Machine Learning, Data Analysis, Data Visualization, Big Data, Cloud Computing, Data Engineering, Data Science, Business Intelligence, Data Warehousing, ETL, Tableau, Power BI, Hadoop, Spark, NoSQL, MongoDB, R, SAS, TensorFlow, PyTorch"
     
 
     # Générer la fiche de poste

@@ -7,18 +7,30 @@ from backend.extract_cv import extract_cv_text
 import uuid
 import io
 import reportlab.lib.pagesizes as pagesizes
-from reportlab.pdfgen import canvas
+import io
+import reportlab.lib.pagesizes as pagesizes
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from markdown2 import markdown
+import hashlib
 
 
 load_dotenv()
 
+def hash_password(password):
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
 class CosmosDBManager:
     def __init__(self):
+        # Load environment variables from .env file
         self.endpoint = os.environ["AZURE_COSMOS_ENDPOINT"]
         self.key = os.environ["AZURE_COSMOS_KEY"]
         self.database_name = "HiRoDatabase"
         self.cv_container="Cvs"
         self.fiche_container="FichesDePostes"
+        self.user_container="User"
 
         # Initialize Cosmos client
         self.client = CosmosClient(self.endpoint, credential=self.key)
@@ -78,12 +90,91 @@ class CosmosDBManager:
             print(f"Container {self.fiche_container} n'existe pas.")
         except exceptions.CosmosHttpResponseError as e:
             print(f"Erreur lors de la création du conteneur fiche de poste : {e}")
-            raise   
+            raise
+
+        '''
+        -- create or get container for user
+
+        '''
+        try :
+            container_id =  self.user_container
+            self.user_container = self.database.create_container_if_not_exists(
+                id = container_id,
+                partition_key=PartitionKey(path="/userEmail"),
+                indexing_policy={
+                    "includedPaths": [
+                        {"path": "/*"},
+                    ],
+                },
+            )
+
+        except exceptions.CosmosResourceExistsError:
+            self.user_container = self.database.get_container_client(self.user_container)
+            print(f"Container{self.user_container} n'existe pas")
+        except exceptions.CosmosResourceNotFoundError:
+            print(f"Container {self.user_container} n'existe pas.")
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Erreur lors de la création du conteneur fiche de poste : {e}")
+            raise
+
+    def add_user(self, user_info):
+
+        try :
+            hashed_password = hash_password(user_info["password"])
+
+            document = {
+                "id":user_info["userEmail"],
+                "userEmail":user_info["userEmail"],
+                "nom":user_info["nom"],
+                "prenom":user_info["prenom"],
+                "password":hashed_password
+            }
+
+            self.user_container.upsert_item(document)
+            print("Utilisateur ajouté avec succès.")
+            return user_info["userEmail"]
+
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Erreur lors de l'ajout de l'utilisateur : {e}")
+            raise
 
 
-    def add_cv(self, cv_path, candidat_info, embedding=None):
+
+    def get_user(self, user_info):
+        try:
+            userEmail = user_info["userEmail"]
+            entered_password = user_info["password"]
+            hashed_entered_password = hash_password(entered_password)
+    
+            # Query user by ID (partition key)
+            query = f"SELECT * FROM c WHERE c.userEmail = '{userEmail}'"
+            items = list(self.user_container.query_items(
+                query=query,
+                enable_cross_partition_query=True
+            ))
+    
+            if not items:
+                print("Utilisateur non trouvé.")
+                return None
+    
+            user_doc = items[0]
+    
+            if user_doc["password"] == hashed_entered_password:
+                print("Authentification réussie.")
+                return user_doc
+            else:
+                print("Mot de passe incorrect.")
+                return None
+    
+        except exceptions.CosmosHttpResponseError as e:
+            print(f"Erreur lors de la récupération de l'utilisateur : {e}")
+            raise
+        
+
+    def add_cv(self, cv_path, candidat_info):
            
            cv_text = extract_cv_text(cv_path)
+               
 
            with open(cv_path, 'rb') as f:
                pdf_base64 = base64.b64encode(f.read()).decode('utf-8')
@@ -101,16 +192,13 @@ class CosmosDBManager:
                "email": candidat_info["email"],
                "competences": candidat_info["competences"],
                "fichierPDF": pdf_base64,
-               # "embedding": embedding.tolist(),
                "content": cv_text,
                "metadata": {
                    "source": source,
                    "upload_date": candidat_info.get("uploadDate")
                }
            }
-           
-           if embedding is not None:
-               document["embedding"] = embedding.tolist()
+        
 
            try :
                response = self.cv_container.upsert_item(body=document)
@@ -122,31 +210,70 @@ class CosmosDBManager:
                print(f"Erreur : le document existe déjà : {e}")
                raise
            
-    def generate_pdf_from_text(self, text):
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=pagesizes.A4)
-        c.drawString(100, 750, text)
-        c.showPage()
-        c.save()
-        buffer.seek(0)
 
-        pdf_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+    @staticmethod
+    def clean_duplicate_lines(text):
+     seen = set()
+     cleaned_lines = []
+     for line in text.split('\n'):
+         if line not in seen:
+             cleaned_lines.append(line)
+             seen.add(line)
+     return "\n".join(cleaned_lines)
+
+    def generate_pdf_from_text(self, text):
+
+        clean_text = self.clean_duplicate_lines(text)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=pagesizes.A4)
+        elements = []
+        
+        style = getSampleStyleSheet()
+        
+        title_style = ParagraphStyle(
+         name='TitleStyle',
+         fontSize=18,
+         spaceAfter=12,
+         textColor=colors.HexColor("#2E86C1"),
+         alignment=1,
+         fontName="Helvetica-Bold"
+   )
+        body_style = ParagraphStyle(
+        name='BodyStyle',
+        fontSize=12, 
+        leading=14,
+        fontName="Helvetica",
+        textColor=colors.black,
+        spaceAfter=12,
+ 
+   )
+        html_paragraph = markdown(text)
+        elements.append(Paragraph(html_paragraph, body_style))
+        
+        for para in clean_text.split("\n"):
+            para = para.strip()
+        if para:
+            elements.append(Paragraph(para, body_style))
+            doc.build(elements)
+            buffer.seek(0)
+            pdf_base64 = base64.b64encode(buffer.read()).decode('utf-8')
         return pdf_base64
 
 
         
-    def add_job_description(self, job_info, job_description, embedding=None):
+    def add_job_description(self, job_info, job_description):
 
         job_id = str(uuid.uuid4())  # Generate a unique ID for the job description"
 
         if not isinstance(job_description, str):
             raise ValueError("Le texte de la fiche de poste doit être une chaîne de caractères.")
+        
 
 
         pdf_base64 = self.generate_pdf_from_text(job_description)
 
         document = {
-            "id": f"fiche_de_poste{job_id}",
+            "id": f"fiche_de_poste_{job_info['titre']}_+{job_id}",
             "ficheId": job_id,
             "fichierPDF": pdf_base64,
             "titre": job_info["titre"],
@@ -155,7 +282,6 @@ class CosmosDBManager:
             "niveau": job_info["niveau"],
             "competences": job_info["competences"],
             "content": job_description,
-            "embedding": embedding,
             "source": job_info["metadata"]["source"],
         }
 
@@ -172,14 +298,16 @@ class CosmosDBManager:
         return items[0] if items else None
         
         
-    def get_job_description(self, job_id):
-
-        try:
-            partition_key = job_id
-            return self.fiche_container.read_item(item=job_id, partition_key=job_id)
-        except Exception as e:
-            print(f"Erreur lors de la récupération de la fiche de poste : {e}")
-            return None
+    def get_job_description(self, keyword):
+        """Recupere une fiche de poste par mot clé"""
+        
+        query = "SELECT * FROM c WHERE CONTAINS(c.id, 'keyword')"
+        query = query.replace("keyword", keyword) 
+        items = list(self.fiche_container.query_items(
+            query=query,
+            enable_cross_partition_query=True
+        ))
+        return items[0] if items else None
         
     def list_job_descriptions(self):
         """Recupere toutes les fiches de poste"""
@@ -191,7 +319,7 @@ class CosmosDBManager:
         return items
         
     def list_cvs(self):
-        query = "SELECT * FROM c"
+        query = "SELECT * FROM c "
         items = list(self.cv_container.query_items(
             query=query,
             enable_cross_partition_query=True

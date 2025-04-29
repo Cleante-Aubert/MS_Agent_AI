@@ -1,27 +1,22 @@
 from backend.cosmos_db import CosmosDBManager
 import uuid
-import os
-import base64
+
 
 # Test pour ajouter un CV dans CosmosDB
 def test_add_cv():
     # Chemin du fichier CV (PDF ou DOCX)
     cv_file_path = "./data/cv/Chloé_Bernard_CV.pdf"  # Change le chemin selon ton fichier
 
-    # générer un identifiant unique pour le CV
-    cv_id = str(uuid.uuid4())
 
     # Informations du candidat (exemple)
     candidat_info = {
-        "id": cv_id,  # Identifiant unique pour le candidat
-        "candidatId": "samuel.mbaye@example.com",
-        "nom": "Mbaye",
-        "prenom": "Samuel",  # Base64 du fichier PDF
-        "email": "samuel.mbaye@example.com",
-        "competences": ["Python", "Django", "SQL", "API REST"],
+        "nom": "Leclercourt",
+        "prenom": "Huberto",
+        "email": "hubert.leclercourt@email.com",
+        "competences": ["Python", "Java", "SQL", "Advisor Senior", "Expert"],
         "metadata": {
-            "source": "LinkedIn",
-            "upload_date": "2023-10-01"
+            "source": "Monster",
+            "upload_date": "2024-02-10"
         }
     }
 
