@@ -1,5 +1,4 @@
 import streamlit as st
-import time
 from typing import Dict, List, Optional, Any
 
 def render_top_bar():

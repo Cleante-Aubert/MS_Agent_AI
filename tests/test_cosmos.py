@@ -1,5 +1,4 @@
 from backend.cosmos_db import CosmosDBManager
-import uuid
 
 
 # Test pour ajouter un CV dans CosmosDB
@@ -10,9 +9,9 @@ def test_add_cv():
 
     # Informations du candidat (exemple)
     candidat_info = {
-        "nom": "Leclercourt",
-        "prenom": "Huberto",
-        "email": "hubert.leclercourt@email.com",
+        "nom": "Paolo",
+        "prenom": "Dybala",
+        "email": "paolo.dybala@email.com",
         "competences": ["Python", "Java", "SQL", "Advisor Senior", "Expert"],
         "metadata": {
             "source": "Monster",
