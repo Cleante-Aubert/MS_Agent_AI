@@ -13,9 +13,7 @@ Dans le cadre du Hackaton organisé par Microsoft dans le thème de l'intelligen
     - Génération contrôlée (fiche de poste)
     - Similarité sémantique fiche ⇔ CV (RAG)
 
-- Stockage vectoriel pour les CV (FAISS ou Azure Cosmos DB)
-- Déploiement : ???
-- Hébergement : **Azure App Service**
+- Stockage vectoriel pour les CV (Azure Cosmos DB)
 
 ### 3. RAG - Base de connaissance
 - Données internes RH (modèles de fiches, critères de sélection, process, ...)
