@@ -1,6 +1,10 @@
 import requests
+import urllib3
 
-API_URL = "http://localhost:8000/generate_fiche"
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+API_URL = "https://127.0.0.1:8443/generate_fiche"
 
 def generate_fiche_api(titre, secteur, contrat, niveau, competences):
     try:

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from backend.cosmos_db import CosmosDBManager
 from backend.fiche_generator import generate_fiche
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 app = FastAPI()
 db = CosmosDBManager()
@@ -58,6 +59,7 @@ class FicheRequest(BaseModel):
 
 @app.post("/generate_fiche")
 def generate_fiche_route(request: FicheRequest):
+    print("generation de la fiche demandée ...")
     try:
         content, fiche_id = generate_fiche(
             titre=request.titre,
@@ -80,8 +82,32 @@ def generate_fiche_route(request: FicheRequest):
 
         doc_id = db.add_job_description(job_info, content)
 
+        query = f"SELECT * FROM c WHERE c.id = '{doc_id}'"
+        items = list(db.fiche_container.query_items(
+            query=query,
+            enable_cross_partition_query=True
+        ))
+        
+        if items:
+            # Renvoyer la fiche et le PDF
+            return {
+                "fiche": content,
+                "fichierPDF": items[0]["fichierPDF"],
+                "id": doc_id
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Fiche créée mais non retrouvée")        
 
-        return {"fiche_id": fiche_id, "fiche": content, "document_id":doc_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+if __name__ == "__main__":
+    uvicorn.run(
+        "backend.main:app",
+        host="0.0.0.0",
+        port=8443,
+        ssl_keyfile="./server.key",
+        ssl_certfile="./server.crt"
+    )
     

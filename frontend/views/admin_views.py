@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import time
-from typing import Dict, List, Any
+
 
 from models.jobs import JobModel
 from models.candidates import CandidateModel
@@ -96,7 +95,9 @@ class AdminViews:
         st.text_input("Rechercher une fiche de poste", placeholder="Entrez un mot-clé...")
         
         # Afficher les offres
-        jobs = JobModel.get_all_jobs()
+        all_jobs = JobModel.get_all_jobs()
+        jobs = [job for job in all_jobs if job.get("metadata", {}).get("source") == "générée_par_HiRo"]
+
         if jobs:
             for job in jobs:
                 render_job_card(job, admin_mode=True)
@@ -149,3 +150,4 @@ class AdminViews:
                         st.experimental_rerun()
         else:
             st.markdown('<div style="text-align: center; margin: 50px 0;">Aucun candidat ne correspond à vos critères</div>', unsafe_allow_html=True)
+

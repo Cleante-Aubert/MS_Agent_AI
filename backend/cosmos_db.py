@@ -47,7 +47,6 @@ class CosmosDBManager:
             raise
 
         # Create or get container for cv
-
         try:
             self.cv_container = self.database.create_container_if_not_exists(
                 id=self.cv_container,

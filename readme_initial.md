@@ -21,4 +21,3 @@ Dans le cadre du Hackaton organisé par Microsoft dans le thème de l'intelligen
 - Données internes RH (modèles de fiches, critères de sélection, process, ...)
 - Intégrer avec LangChain + retriever
 - Embeddings Azure
-....
