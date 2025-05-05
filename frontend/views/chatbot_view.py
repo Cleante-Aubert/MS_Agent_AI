@@ -3,7 +3,7 @@ import time
 import base64
 
 from utils.styles import get_component_css
-from views.components import render_top_bar, render_success_message
+from views.components import render_success_message, render_top_bar
 from utils.api import generate_fiche_api
 
 def render_chatbot_page():

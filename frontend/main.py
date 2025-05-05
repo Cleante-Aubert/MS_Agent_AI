@@ -5,7 +5,7 @@ import os
 # Ajouter le répertoire courant au chemin Python
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from controllers.admin_controller import AdminController
+from frontend.controllers.auth_controller import AdminController
 from utils.styles import load_css
 
 def main():

@@ -2,7 +2,6 @@
 # Permet d'importer directement depuis le package views
 
 from .client_views import ClientViews
-from .admin_views import AdminViews
 from .components import (
     render_job_card,
     render_candidate_card,

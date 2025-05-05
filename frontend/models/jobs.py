@@ -1,99 +1,42 @@
-import streamlit as st
-from typing import List, Dict, Optional
-
-class JobModel:
-    """
-    Modèle pour gérer les offres d'emploi.
-    """
+class JobPosting:
+    """Modèle représentant une fiche de poste."""
+    
+    def __init__(self, job_id, titre, secteur, contrat, niveau, competences, content, pdf_file=None):
+        self.job_id = job_id
+        self.titre = titre
+        self.secteur = secteur
+        self.contrat = contrat
+        self.niveau = niveau
+        self.competences = competences if isinstance(competences, list) else [c.strip() for c in competences.split(",")]
+        self.content = content
+        self.pdf_file = pdf_file
     
     @staticmethod
-    def get_all_jobs() -> List[Dict]:
-        """Récupère toutes les offres d'emploi."""
-        if 'jobs' not in st.session_state:
-            # Initialiser avec des données de démo
-            from models.mock_data import JOBS_DATA
-            st.session_state.jobs = JOBS_DATA
-            
-        return st.session_state.jobs
+    def from_api_response(api_response):
+        """Crée un objet JobPosting à partir de la réponse de l'API."""
+        return JobPosting(
+            job_id=api_response.get("id", ""),
+            titre=api_response.get("titre", ""),
+            secteur=api_response.get("secteur", ""),
+            contrat=api_response.get("contrat", ""),
+            niveau=api_response.get("niveau", ""),
+            competences=api_response.get("competences", []),
+            content=api_response.get("content", ""),
+            pdf_file=api_response.get("fichierPDF", None)
+        )
     
-    @staticmethod
-    def get_job_by_id(job_id: int) -> Optional[Dict]:
-        """Récupère une offre d'emploi par son ID."""
-        jobs = JobModel.get_all_jobs()
-        for job in jobs:
-            if job['id'] == job_id:
-                return job
-        return None
+    def to_dict(self):
+        """Convertit l'objet en dictionnaire pour l'API."""
+        return {
+            "titre": self.titre,
+            "secteur": self.secteur,
+            "contrat": self.contrat,
+            "niveau": self.niveau,
+            "competences": ",".join(self.competences) if isinstance(self.competences, list) else self.competences
+        }
     
-    @staticmethod
-    def filter_jobs(departement=None, type_contrat=None, localisation=None, keyword=None) -> List[Dict]:
-        """Filtre les offres d'emploi selon les critères spécifiés."""
-        jobs = JobModel.get_all_jobs()
-        filtered_jobs = jobs
-        
-        if departement and departement != "Tous":
-            filtered_jobs = [job for job in filtered_jobs if job["departement"] == departement]
-        
-        if type_contrat and type_contrat != "Tous":
-            filtered_jobs = [job for job in filtered_jobs if job["type"] == type_contrat]
-        
-        if localisation and localisation != "Toutes":
-            filtered_jobs = [job for job in filtered_jobs if job["localisation"] == localisation]
-        
-        if keyword:
-            keyword = keyword.lower()
-            filtered_jobs = [
-                job for job in filtered_jobs 
-                if keyword in job["titre"].lower() or keyword in job["description"].lower()
-            ]
-            
-        return filtered_jobs
+    def get_summary(self):
+        """Retourne un résumé de la fiche de poste."""
+        return f"{self.titre} ({self.contrat}) - {self.secteur}"
     
-    @staticmethod
-    def add_job(job_data: Dict) -> Dict:
-        """Ajoute une nouvelle offre d'emploi."""
-        jobs = JobModel.get_all_jobs()
-        
-        # Attribuer un nouvel ID
-        if jobs:
-            new_id = max(job['id'] for job in jobs) + 1
-        else:
-            new_id = 1
-            
-        job_data['id'] = new_id
-        
-        # Ajouter à la liste
-        jobs.append(job_data)
-        st.session_state.jobs = jobs
-        
-        return job_data
-    
-    @staticmethod
-    def update_job(job_id: int, job_data: Dict) -> Optional[Dict]:
-        """Met à jour une offre d'emploi existante."""
-        jobs = JobModel.get_all_jobs()
-        
-        for i, job in enumerate(jobs):
-            if job['id'] == job_id:
-                # Préserver l'ID
-                job_data['id'] = job_id
-                # Mettre à jour
-                jobs[i] = job_data
-                st.session_state.jobs = jobs
-                return job_data
-                
-        return None
-    
-    @staticmethod
-    def delete_job(job_id: int) -> bool:
-        """Supprime une offre d'emploi."""
-        jobs = JobModel.get_all_jobs()
-        
-        for i, job in enumerate(jobs):
-            if job['id'] == job_id:
-                # Supprimer
-                del jobs[i]
-                st.session_state.jobs = jobs
-                return True
-                
-        return False
+JobModel = JobPosting

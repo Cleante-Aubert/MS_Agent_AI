@@ -1,16 +1,25 @@
+
 import streamlit as st
-from typing import Dict, List, Optional, Any
+from utils.session_manager import set_page, is_logged_in, get_user_type, logout_user
+from typing import Dict, List, Callable, Any
 
 def render_top_bar():
-    """
-    Affiche la barre supérieure avec logo et profil en dark mode.
-    """
-    st.markdown("""
-    <div class="top-bar">
-        <div class="logo">HiRo</div>
-        <div class="profile">Simon</div>
-    </div>
-    """, unsafe_allow_html=True)
+    """Affiche la barre de navigation supérieure."""
+    col1, col2, col3 = st.columns([1, 3, 1])
+    
+    with col1:
+        st.image("https://i.ibb.co/f4Kq0hP/logo-hiro.png", width=100)  # Placeholder pour un logo
+    
+    with col2:
+        st.markdown("""
+        <h1 style='text-align: center; color: #2E86C1;'>HiRo - Assistant RH Intelligent</h1>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        if is_logged_in():
+            if st.button("📤 Déconnexion"):
+                logout_user()
+                st.rerun()
 
 def render_job_card(job: Dict, show_button: bool = True, admin_mode: bool = False):
     """
